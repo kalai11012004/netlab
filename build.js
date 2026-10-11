@@ -66,10 +66,23 @@ function applyUnifiedDiff(sourceText, diffText) {
   return out.join("\n");
 }
 const html = applyUnifiedDiff(original, patchText);
-if (sha256(html) !== NEW_SHA256) throw new Error("Patched HTML checksum mismatch; refusing to build");
-const compressed = zlib.brotliCompressSync(Buffer.from(html, "utf8"), { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 } });
+if (sha256(html) !== NEW_SHA256) throw new Error("Patched v3.6 checksum mismatch; refusing to continue");
+
+const v4Parts = fs.readdirSync(payloadDir)
+  .filter((name) => /^v4\.patch\.\d{2}(?:[a-z]\d?)?\.b64$/.test(name))
+  .sort()
+  .map((name) => fs.readFileSync(path.join(payloadDir, name), "utf8").trim());
+if (v4Parts.length !== 8) throw new Error(`Expected 8 v4.0 patch chunks, found ${v4Parts.length}`);
+const v4PatchText = zlib.brotliDecompressSync(Buffer.from(v4Parts.join(""), "base64")).toString("utf8");
+const V40_SHA256 = "485cde601120bc6c8547662c1872fef9f8a7769d7e643f133a826a4e9fd46930";
+const v4Html = applyUnifiedDiff(html, v4PatchText);
+if (sha256(v4Html) !== V40_SHA256) throw new Error("Patched v4.0 checksum mismatch; refusing to publish");
+if (!v4Html.includes("NetLab Studio 4.0") || !v4Html.includes("QEMU/KVM") || !v4Html.includes("SIMULATION ONLY")) {
+  throw new Error("Required v4.0 virtualization markers are missing");
+}
+const compressed = zlib.brotliCompressSync(Buffer.from(v4Html, "utf8"), { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 } });
 fs.rmSync(distDir, { recursive: true, force: true });
 fs.mkdirSync(distDir, { recursive: true });
 fs.writeFileSync(path.join(distDir, "index.html"), compressed);
 for (const file of ["manifest.webmanifest", "icon.svg", "sw.js"]) fs.copyFileSync(path.join(root, file), path.join(distDir, file));
-console.log(`NetLab Studio v3.6 prepared; Brotli HTML: ${compressed.byteLength} bytes; patch hunks: verified`);
+console.log(`NetLab Studio v4.0 prepared; Brotli HTML: ${compressed.byteLength} bytes; v3.5/v3.6/v4.0 checksums verified`);
