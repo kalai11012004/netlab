@@ -1,0 +1,11 @@
+{
+  "name": "NetLab Studio — Network Engineering Lab",
+  "short_name": "NetLab Studio",
+  "description": "An educational browser-based network topology and simulation lab.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
