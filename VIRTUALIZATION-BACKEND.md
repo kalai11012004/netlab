@@ -1,22 +1,28 @@
-# Real virtualization backend — architecture proposal
+# Real VM runtime — NetLab Studio v4.1
 
-## Current v4.0 behavior
+## Deployment boundary
+The Vercel app is a static browser application. It cannot run QEMU, access `/dev/kvm`, or host a Windows desktop itself. A separate operator-managed Linux/KVM host runs `runtime-backend/server.mjs`. The browser can connect to this service over HTTPS using a secret kept in the current browser session; it is not exported with project files.
 
-NetLab Studio is a static browser application. VM, appliance, container, and network-cloud objects are project profiles processed by a simulated network model. Start/Stop is only simulated state. The app does not boot guest OS images, execute QEMU/KVM/Docker, expose real SSH/VNC, bridge a host NIC, or capture real packets.
+## Windows installer workflow
+1. Prepare a dedicated x86_64 Ubuntu Server 24.04 KVM host. Enable Intel VT-x/AMD-V in firmware and verify `/dev/kvm` exists.
+2. Extract the source ZIP and run `sudo runtime-backend/scripts/install-ubuntu.sh` on the host. The script checks the host and does not download Windows images.
+3. Review `/etc/netlab/runtime.env`; configure a long random API token, public HTTPS base URL, exact allowed browser origins, and conservative network/capture allowlists. Keep the service private behind TLS; do not forward port 8787 directly to the public internet.
+4. Put an installer ISO you are authorized to use under `/var/lib/libvirt/images/netlab-base/` and register it in `/etc/netlab/image-registry.json` as an allowlisted `installer-iso`. Do not expose arbitrary filesystem paths.
+5. Configure the Caddy reverse proxy from `runtime-backend/deploy/Caddyfile.example`, verify TLS, then start `netlab-kvm-runtime` and test `/api/health`.
+6. In the website, choose Virtualization → Connect QEMU/KVM backend, enter the HTTPS origin and token, refresh capabilities/images, and create a Windows VM with the ISO image ID.
+7. The backend creates a blank QCOW2 disk and read-only SATA CD-ROM, uses a SATA disk and e1000e NIC for installer compatibility, then issues an expiring console ticket for noVNC. Complete Windows setup interactively; eject the ISO after install. Windows 11 launch is rejected unless UEFI Secure Boot and TPM 2.0 are available.
+8. Confirm the real VM state from backend status and inspect the console. Do not infer guest readiness from an accepted API request or the presence of a QEMU process.
 
-## Recommended architecture
+## Security controls
+- Bearer token, strict allowed-origin handling, bounded request schema, server-side image registry, path and symlink escape rejection.
+- Only predefined libvirt operations and registered image/network IDs are accepted; browser input is never passed to a host shell.
+- Host service binds to loopback behind TLS proxy, with dedicated service user and systemd filesystem restrictions. Review and adapt the installer/service before production.
+- Short-lived, single-use noVNC tickets; PCAP capture only on pre-allowlisted interfaces with duration/size bounds.
+- Do not expose host SSH, Docker socket, raw QEMU monitor, libvirt socket, physical interfaces, arbitrary image paths or captures to the browser.
 
-Browser UI → HTTPS, identity and permissions → Lab API (schema/quota checks and audit log) → isolated lab scheduler/controller → QEMU/KVM worker pool, optional OCI worker, per-lab virtual L2 networks, authenticated console gateway, and optional packet-capture worker.
-
-## Minimum safe sequence
-
-1. Implement authenticated API actions for create/start/stop/wipe/delete, node status, vNIC attach/detach, console ticket and logs.
-2. Enforce per-user/per-lab isolation, resource limits, rate limits, audit logs, idempotency, timeouts and guaranteed cleanup.
-3. Maintain a server-side image registry with format validation, hashes, supported versions and licensing/authorization metadata.
-4. Use server-authoritative states (defined, queued, starting, running, stopping, stopped, failed). Only show running after hypervisor confirmation.
-5. Add virtual network isolation and cross-lab isolation tests before enabling any external bridge or NAT.
-6. Use a scoped, expiring console proxy; do not expose raw hypervisor sockets, Docker socket, host SSH or arbitrary filesystem access.
-7. Add snapshots, rollback policy, monitoring, storage limits and cleanup after errors/timeouts.
-8. Add PCAP/remote Wireshark only when packets traverse the real backend.
-
-Users must supply images they are legally authorized to use. Do not bundle proprietary vendor images into the public repository.
+## Known limitations
+- No QEMU/KVM host exists in the build environment, so the real guest boot has not been tested here. The API/unit tests are not a substitute for an integration test on the target server.
+- No Windows ISO or vendor appliance image is bundled. Supply only images you have rights to use and follow their licensing/activation requirements.
+- The network canvas is not yet automatically projected to isolated Linux TAP/bridge networks. Registered libvirt network attachment is supported only as selected by the backend's network allowlist.
+- Real Windows boot and noVNC require successful host setup; PCAP requires host tcpdump privileges and allowlisted capture interfaces.
+- Current simulated packet traces are not actual packets. Real captures are only from configured backend endpoints.

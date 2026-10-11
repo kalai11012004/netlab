@@ -1,10 +1,28 @@
-# NetLab Studio v4.0 — NG-Lab style virtual network workspace
+# NetLab Studio v4.1 — CCNA labs + Windows VM runtime
 
-This release adds an EVE-NG/NG-Lab-inspired browser workflow: contextual canvas actions, a node manager, lab metadata and lock state, per-node startup-configuration templates, local text repository, resource profiles, virtual NICs, VM/container/cloud profiles, event-trace CSV export and a virtualization manifest.
+NG-Lab/EVE-NG-inspired browser topology and guided learning workspace with an optional real-host QEMU/KVM API. It is an educational simulator, not a complete EVE-NG replacement or a Cisco IOS emulator.
 
-**Important VM limitation:** VM and container nodes remain simulated profiles. This static site does not boot guest operating systems, run QEMU/KVM or Docker, expose real VNC/SSH consoles, bridge physical NICs or generate real PCAPs. A real execution backend, authenticated isolation and user-authorized images are required. See `VIRTUALIZATION-BACKEND.md` and `NG-LAB-GAP-ANALYSIS.md`.
+## v4.1
+- Connect the browser to an operator-managed QEMU/KVM backend over HTTPS using a private API token.
+- Discover admin-allowlisted VM images/networks; request real VM create/start/stop/status and open an expiring noVNC console ticket.
+- Windows installer workflow: authorized ISO, new writable QCOW2 disk, read-only SATA CD-ROM, SATA disk and e1000e NIC. Windows 11 requires host UEFI Secure Boot and TPM 2.0 capability.
+- Added an in-app road map matching all 18 topics from the provided CCNA BootCamp Tamil course index. See `PLAYLIST-COVERAGE.md`.
+- Added an Ubuntu Server 24.04 installation script, restricted systemd service and reverse-proxy example under `runtime-backend/`.
 
-The referenced YouTube playlist could not be fully enumerated with video transcripts in this environment; the workflow is based on the provided UI screenshot and public EVE-NG documentation rather than claiming a video-by-video review.
+## Real Windows guest — requirements
+The Vercel site is static and is **not** itself a hypervisor. To boot Windows, use a dedicated x86_64 Linux host with Intel VT-x/AMD-V, working `/dev/kvm`, QEMU/KVM, libvirt, OVMF and swtpm. Extract the source ZIP, run `sudo runtime-backend/scripts/install-ubuntu.sh` on that dedicated Ubuntu Server 24.04 host, review `/etc/netlab/runtime.env` and `/etc/netlab/image-registry.json`, configure HTTPS, then connect from **Virtualization → Connect QEMU/KVM backend…**. Register only an OS ISO/image you are legally authorized to use. See `VIRTUALIZATION-BACKEND.md` for the checklist.
 
+**Runtime honesty:** no OS ISO or proprietary appliance image is bundled. The VM flow is not operational until a separate host is installed and connected. This repository's CI/test environment has no `/dev/kvm`, so no real Windows guest boot has been certified here. The simulator's current topology is not automatically bridged to host networks, and simulated CSV traces are not real PCAPs.
 
-Browser-based network topology and simulation lab. The app is shipped as a precompressed Brotli HTML file for static hosting on Vercel.
+## Run the browser UI locally
+With Node.js installed, run `node build-local.js` and serve the project with `python -m http.server 8080`; open `http://localhost:8080`. Stop the server with Ctrl+C.
+
+## Validation
+- Network engine, security, regression and catalogue tests: 52 passing.
+- Browser E2E tests: 24 passing.
+- Bundled application E2E tests: 22 passing.
+- QEMU/KVM runtime API / image registry / libvirt XML unit tests: 17 passing.
+These tests validate application and API logic. They do not substitute for a real KVM host or a live Windows-install verification.
+
+## Playlist coverage
+The linked course page lists 18 lessons / 18:23:51 total. See `PLAYLIST-COVERAGE.md` for a lesson-by-lesson implementation gap map. The individual YouTube transcripts could not all be retrieved in this environment; the coverage map does not claim every full video was watched.

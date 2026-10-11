@@ -1,4 +1,4 @@
-const CACHE = 'netlab-studio-v4-nglab-production-v1';
+const CACHE = 'netlab-studio-v4.1-windows-vm-production-v1';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', event => {
