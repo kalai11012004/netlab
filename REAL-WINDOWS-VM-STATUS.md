@@ -2,7 +2,7 @@
 
 ## Verified in the source package
 
-- `npm test` passes: 52 network/catalogue tests, 19 runtime backend tests, 25 readable-source browser E2E tests and 22 bundled browser E2E tests. Re-running the complete suite after console-ticket tests is required for the updated count.
+- The root `npm test` suite passes: 52 network/catalogue tests, 17 existing VM-backend tests, 25 readable-source browser E2E tests and 22 bundled browser E2E tests. Separately, `runtime-backend/npm test` passes 19 runtime API/VM XML/image-registry/console-ticket tests.
 - `npm run build` passes. Output HTML SHA-256: `4ea90d3d75fe143c069afca40b58f1f881627dda905abb6966b9b0574d141720`.
 - Backend Node syntax checks and shell syntax checks pass. The dedicated console-ticket tests now cover stopped/running VM checks, short lifetime metadata and the noVNC console page.
 - Windows installer profile creates a writable QCOW2 disk and attaches an owner-supplied ISO read-only. Windows 11 is gated on Secure Boot OVMF and software TPM 2.0.
