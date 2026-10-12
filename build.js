@@ -102,10 +102,10 @@ const collapsedSidebarIndex = releaseHtml.indexOf(collapsedSidebarRule);
 if (collapsedSidebarIndex < 0) throw new Error("Workspace layout marker missing; refusing to publish");
 const hiddenSidebarRule = ".app-layout.library-collapsed .left-sidebar,.app-layout.inspector-collapsed .right-sidebar{visibility:hidden;overflow:hidden;border:0;padding:0;pointer-events:none}";
 releaseHtml = releaseHtml.slice(0, collapsedSidebarIndex) + hiddenSidebarRule + releaseHtml.slice(collapsedSidebarIndex + collapsedSidebarRule.length);
-const oldFirstRunLayout = "let layoutPrefs = { libraryCollapsed: true, inspectorCollapsed: false, dockCollapsed: false, dockHeight: 154 };";
-const newFirstRunLayout = "let layoutPrefs = { libraryCollapsed: true, inspectorCollapsed: false, dockCollapsed: false, dockHeight: 154 };";
-if (releaseHtml.includes(oldFirstRunLayout)) releaseHtml = releaseHtml.replace(oldFirstRunLayout, newFirstRunLayout);
-if (!releaseHtml.includes(newFirstRunLayout)) throw new Error("Compact first-run device library marker missing; refusing to publish");
+const firstRunLayoutPattern = /let layoutPrefs = \{ libraryCollapsed: (?:true|false), inspectorCollapsed: false, dockCollapsed: false, dockHeight: 154 \};/;
+if (!firstRunLayoutPattern.test(releaseHtml)) throw new Error("First-run layout preference marker missing; refusing to publish");
+releaseHtml = releaseHtml.replace(firstRunLayoutPattern, "let layoutPrefs = { libraryCollapsed: true, inspectorCollapsed: false, dockCollapsed: false, dockHeight: 154 };");
+if (!releaseHtml.includes("let layoutPrefs = { libraryCollapsed: true, inspectorCollapsed: false, dockCollapsed: false, dockHeight: 154 };")) throw new Error("Compact first-run device library marker missing; refusing to publish");
 // Match the reference layout: full-width canvas with a single right inspector.
 const oldInspectorWidth = "--inspector-width:clamp(250px,20vw,320px)";
 const newInspectorWidth = "--inspector-width:clamp(400px,25vw,470px)";
