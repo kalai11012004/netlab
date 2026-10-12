@@ -63,7 +63,7 @@ for group in libvirt kvm libvirt-qemu; do getent group "$group" >/dev/null && us
 install -d -o root -g libvirt-qemu -m 2750 /var/lib/libvirt/images/netlab-base
 install -d -o root -g libvirt-qemu -m 2770 /var/lib/libvirt/images/netlab-vms
 install -d -o root -g netlab-runtime -m 0750 /var/lib/netlab/state /var/lib/netlab/captures
-install -d -o root -g root -m 0750 /etc/netlab
+install -d -o root -g netlab-runtime -m 0750 /etc/netlab
 install -d -o root -g root -m 0755 /opt/netlab
 rm -rf /opt/netlab/runtime-backend
 install -d -o root -g root -m 0755 /opt/netlab/runtime-backend
