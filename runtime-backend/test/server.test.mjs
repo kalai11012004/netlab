@@ -108,3 +108,23 @@ test('Windows 11 request is rejected when host Secure Boot/TPM capability is not
   const response=await api('/api/v1/vms',{method:'POST',body:{labId:'win-lab-caps',nodeId:'windows-11',name:'Windows 11',imageId:'windows-iso-test',vcpus:4,ramMiB:8192,diskGiB:80,networkIds:['test-net']}});
   assert.equal(response.status,503);assert.match((await response.json()).error,/Secure Boot OVMF firmware or swtpm/i);
 });
+
+test('real console ticket is short-lived, backend-origin scoped and opens the noVNC page only for running VMs',async t=>{
+  const {api,app}=await setup(t);
+  const made=await (await api('/api/v1/vms',{method:'POST',body:{labId:'console-lab',nodeId:'windows-11',name:'Windows console',imageId:'windows-iso-test',vcpus:4,ramMiB:8192,diskGiB:80,networkIds:['test-net']}})).json();
+  const stopped=await api(`/api/v1/vms/${made.id}/console-ticket`,{method:'POST',body:{}});assert.equal(stopped.status,409);
+  await api(`/api/v1/vms/${made.id}/start`,{method:'POST',body:{}});
+  const response=await api(`/api/v1/vms/${made.id}/console-ticket`,{method:'POST',body:{}});assert.equal(response.status,200);
+  const ticketData=await response.json();assert.equal(ticketData.oneTime,true);assert.equal(ticketData.expiresInSeconds,30);
+  const consoleUrl=new URL(ticketData.consoleUrl);assert.equal(consoleUrl.pathname,'/console');assert.ok(consoleUrl.searchParams.get('ticket'));assert.equal(consoleUrl.port,'8787');assert.doesNotMatch(ticketData.consoleUrl,/:5900\b/i);
+  // The external hostname is configured separately from the ephemeral test listener.
+  const page=await fetch(`http://127.0.0.1:${app.server.address().port}/console?ticket=${encodeURIComponent(consoleUrl.searchParams.get('ticket'))}`);
+  assert.equal(page.status,200);assert.match(page.headers.get('content-security-policy'),/frame-ancestors 'none'/);assert.match(await page.text(),/new RFB/);
+});
+
+test('console page rejects missing, unknown and expired-style tickets',async t=>{
+  const {base}=await setup(t);
+  for(const url of ['/console','/console?ticket=not-a-valid-ticket']){
+    const response=await fetch(base+url);assert.equal(response.status,401);
+  }
+});
