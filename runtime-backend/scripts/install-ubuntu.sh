@@ -73,7 +73,10 @@ cd /opt/netlab/runtime-backend
 npm install --omit=dev --no-audit --no-fund
 
 if [[ ! -f /etc/netlab/image-registry.json ]]; then
-  install -o root -g netlab-runtime -m 0640 "$RUNTIME_SRC/config/image-registry.example.json" /etc/netlab/image-registry.json
+  # Start empty so health/capability APIs work before an owner supplies guest media.
+  printf '{\\n  "images": []\\n}\\n' > /etc/netlab/image-registry.json
+  chown root:netlab-runtime /etc/netlab/image-registry.json
+  chmod 0640 /etc/netlab/image-registry.json
 fi
 if [[ ! -f /etc/netlab/runtime.env ]]; then
   install -o root -g root -m 0600 "$RUNTIME_SRC/.env.example" /etc/netlab/runtime.env
