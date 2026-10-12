@@ -69,6 +69,14 @@ rm -rf /opt/netlab/runtime-backend
 install -d -o root -g root -m 0755 /opt/netlab/runtime-backend
 cp -a "$RUNTIME_SRC/." /opt/netlab/runtime-backend/
 chown -R root:root /opt/netlab/runtime-backend
+# Create a valid empty registry before npm's verified source overlay can refresh this script.
+# This prevents first-boot setup from depending on any stale copy of the installer block.
+if [[ ! -f /etc/netlab/image-registry.json ]]; then
+  printf '%s\\n' '{' '  "images": []' '}' > /etc/netlab/image-registry.json
+  chown root:netlab-runtime /etc/netlab/image-registry.json
+  chmod 0640 /etc/netlab/image-registry.json
+fi
+
 cd /opt/netlab/runtime-backend
 npm install --omit=dev --no-audit --no-fund
 
