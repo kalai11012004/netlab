@@ -19,6 +19,17 @@
       "firmware": "uefi-secure-tpm2",
       "guestOS": "Windows 11",
       "notes": "Owner-provided licensed ISO. Creates a new blank writable virtual disk for installation; requires supported Secure Boot OVMF and software TPM 2.0."
+    },
+    {
+      "id": "router-os-example",
+      "label": "Admin-supplied router OS disk (example only)",
+      "path": "/var/lib/libvirt/images/netlab-base/router-os.qcow2",
+      "format": "qcow2",
+      "mediaType": "disk",
+      "firmware": "uefi",
+      "guestOS": "Generic router appliance",
+      "consoleType": "serial",
+      "notes": "Example registry entry only; place a compatible, authorized, bootable router OS disk at this path. Serial console support is required. No Cisco IOS or vendor appliance image is bundled."
     }
   ]
 }
