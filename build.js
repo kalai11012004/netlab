@@ -93,9 +93,11 @@ if (sha256(v41Html) !== V41_SHA256) throw new Error("Patched v4.1 checksum misma
 if (!v41Html.includes("Connect QEMU/KVM backend") || !v41Html.includes("CCNA Tamil playlist roadmap") || !v41Html.includes("Eject installer ISO")) {
   throw new Error("Required v4.1 Windows VM / playlist markers are missing");
 }
-const htmlBuffer = Buffer.from(v41Html, "utf8");
+const htmlBuffer = zlib.brotliCompressSync(Buffer.from(v41Html, "utf8"), {
+  params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 }
+});
 fs.rmSync(distDir, { recursive: true, force: true });
 fs.mkdirSync(distDir, { recursive: true });
 fs.writeFileSync(path.join(distDir, "index.html"), htmlBuffer);
 for (const file of ["manifest.webmanifest", "icon.svg", "sw.js"]) fs.copyFileSync(path.join(root, file), path.join(distDir, file));
-console.log(`NetLab Studio v4.1 prepared; plain HTML: ${htmlBuffer.byteLength} bytes; v3.5/v3.6/v4.0/v4.1 checksums verified`);
+console.log(`NetLab Studio v4.1 prepared; Brotli-compressed HTML: ${htmlBuffer.byteLength} bytes; v3.5/v3.6/v4.0/v4.1 checksums verified`);
