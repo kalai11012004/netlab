@@ -1,0 +1,24 @@
+{
+  "images": [
+    {
+      "id": "ubuntu-24.04-base",
+      "label": "Ubuntu 24.04 preinstalled disk (admin supplied)",
+      "path": "/var/lib/libvirt/images/netlab-base/ubuntu-24.04.qcow2",
+      "format": "qcow2",
+      "mediaType": "disk",
+      "firmware": "uefi",
+      "guestOS": "Ubuntu Linux",
+      "notes": "Admin-provided, bootable QCOW2 base disk. A preinstalled OS disk is required for disk mode."
+    },
+    {
+      "id": "windows11-installer",
+      "label": "Windows 11 installer ISO (owner supplied)",
+      "path": "/var/lib/libvirt/images/netlab-base/Win11.iso",
+      "format": "iso",
+      "mediaType": "installer-iso",
+      "firmware": "uefi-secure-tpm2",
+      "guestOS": "Windows 11",
+      "notes": "Owner-provided licensed ISO. Creates a new blank writable virtual disk for installation; requires supported Secure Boot OVMF and software TPM 2.0."
+    }
+  ]
+}

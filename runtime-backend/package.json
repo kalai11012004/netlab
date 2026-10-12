@@ -1,0 +1,14 @@
+{
+  "name": "netlab-kvm-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Authenticated QEMU/KVM runtime API for NetLab Studio; requires an administrator-managed Linux/libvirt host.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test",
+    "check": "node --check server.mjs && node --check lib/libvirt-driver.mjs && node --check lib/security.mjs && node --check test/server.test.mjs && node --check test/libvirt-driver.test.mjs && node --check test/image-registry.test.mjs"
+  },
+  "dependencies": { "@novnc/novnc": "^1.5.0" }
+}
