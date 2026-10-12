@@ -1,0 +1,31 @@
+[Unit]
+Description=NetLab Studio isolated QEMU/KVM runtime API
+After=network-online.target libvirtd.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=netlab-runtime
+Group=netlab-runtime
+SupplementaryGroups=libvirt kvm libvirt-qemu
+WorkingDirectory=/opt/netlab/runtime-backend
+EnvironmentFile=/etc/netlab/runtime.env
+ExecStart=/usr/bin/node /opt/netlab/runtime-backend/server.mjs
+Restart=on-failure
+RestartSec=3s
+TimeoutStopSec=30s
+UMask=0007
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+ReadWritePaths=/var/lib/libvirt/images/netlab-vms /var/lib/netlab/state /var/lib/netlab/captures /var/lib/libvirt/qemu/nvram
+
+[Install]
+WantedBy=multi-user.target
