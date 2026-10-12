@@ -131,7 +131,7 @@ let v42AppSource = zlib.brotliDecompressSync(Buffer.from(v42AppParts.join(""), "
 const V42_APP_SHA256 = "4b13486a13f3043e5135c64fe9db01b7deb46ee711bd2907f979f0173471d1e0";
 if (sha256(v42AppSource) !== V42_APP_SHA256) throw new Error("v4.2 app-source checksum mismatch; refusing to publish");
 // Preserve the existing v4.1 compact-library first-run behavior in the replacement script.
-const v42LayoutPattern = /let layoutPrefs = \\{ libraryCollapsed: (?:true|false), inspectorCollapsed: false, dockCollapsed: false, dockHeight: 154 \\};/;
+const v42LayoutPattern = /let layoutPrefs = \{ libraryCollapsed: (?:true|false), inspectorCollapsed: false, dockCollapsed: false, dockHeight: 154 \};/;
 if (!v42LayoutPattern.test(v42AppSource)) throw new Error("v4.2 first-run layout preference marker missing; refusing to publish");
 v42AppSource = v42AppSource.replace(v42LayoutPattern, "let layoutPrefs = { libraryCollapsed: true, inspectorCollapsed: false, dockCollapsed: false, dockHeight: 154 };");
 const inlineScripts = [...releaseHtml.matchAll(/<script[^>]*>[\s\S]*?<\/script>/g)];
