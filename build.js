@@ -118,15 +118,24 @@ if (inspectorWidthPattern.test(releaseHtml)) {
 }
 if (!releaseHtml.includes(hiddenSidebarRule)) throw new Error("Workspace grid hotfix marker missing; refusing to publish");
 
-// v4.2 runtime UX patch: promote existing nodes to real guest profiles and
-// synchronize the drawn topology into isolated per-lab libvirt L2 segments.
-// The source patch is Brotli-compressed, checksum-gated, and applied only
-// after all original release payload/checksums and workspace layout checks pass.
-const v42PatchB64 = fs.readFileSync(path.join(payloadDir, "v4.2.patch.01.b64"), "utf8").trim();
-const v42PatchText = zlib.brotliDecompressSync(Buffer.from(v42PatchB64, "base64")).toString("utf8");
-const V42_PATCH_SHA256 = "6bf88753270d7a89196a5472ae1564d7e7751b77ee58bdefa43a5925a3ee804b";
-if (sha256(v42PatchText) !== V42_PATCH_SHA256) throw new Error("v4.2 patch checksum mismatch; refusing to publish");
-releaseHtml = applyUnifiedDiff(releaseHtml, v42PatchText);
+// v4.2 NG Labs-inspired real runtime UX. Replace only the final inline app
+// script; the device catalog, network engine, topology canvas DOM and verified
+// v4.1 workspace-first layout remain intact. This is deterministic and avoids
+// brittle unified-diff context around old bundled scripts.
+const v42AppParts = fs.readdirSync(payloadDir)
+  .filter((name) => /^v4\\.2-app\\.0[1-6]\\.b64$/.test(name))
+  .sort()
+  .map((name) => fs.readFileSync(path.join(payloadDir, name), "utf8").trim());
+if (v42AppParts.length !== 6) throw new Error(`Expected 6 v4.2 app-source chunks, found ${v42AppParts.length}`);
+const v42AppSource = zlib.brotliDecompressSync(Buffer.from(v42AppParts.join(""), "base64")).toString("utf8");
+const V42_APP_SHA256 = "4b13486a13f3043e5135c64fe9db01b7deb46ee711bd2907f979f0173471d1e0";
+if (sha256(v42AppSource) !== V42_APP_SHA256) throw new Error("v4.2 app-source checksum mismatch; refusing to publish");
+const inlineScripts = [...releaseHtml.matchAll(/<script[^>]*>[\\s\\S]*?<\\/script>/g)];
+if (inlineScripts.length !== 3) throw new Error(`Expected 3 inline application scripts, found ${inlineScripts.length}`);
+const appScript = inlineScripts[2];
+const scriptOpenEnd = appScript.index + appScript[0].indexOf(">") + 1;
+const scriptCloseStart = appScript.index + appScript[0].lastIndexOf("</script>");
+releaseHtml = releaseHtml.slice(0, scriptOpenEnd) + "\\n" + v42AppSource + releaseHtml.slice(scriptCloseStart);
 for (const marker of ["Enable real QEMU/KVM profile", "/api/v1/labs/", "Canvas topology sync"]) {
   if (!releaseHtml.includes(marker)) throw new Error("Required v4.2 runtime workflow marker missing: " + marker);
 }
