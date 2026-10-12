@@ -2,7 +2,7 @@
 
 ## Package and deployment boundary
 
-The browser UI remains a static Vercel website. The `runtime-backend/` source on this branch is a separate authenticated Node.js API/driver for QEMU/KVM/libvirt. It cannot run inside Vercel functions and cannot create `/dev/kvm` for itself. A dedicated operator-managed Linux KVM host is required for a real Windows desktop.
+The browser UI remains a static Vercel website. The `runtime-backend/` source in the repository is a separate authenticated Node.js API/driver for QEMU/KVM/libvirt. It cannot run inside Vercel functions and cannot create `/dev/kvm` for itself. A dedicated operator-managed Linux KVM host is required for a real Windows desktop.
 
 ## Verified capabilities in source and automated tests
 
