@@ -11,7 +11,7 @@
 ## GitHub and deployment status
 
 - Runtime backend source has been committed to branch `feature/real-windows-vm-runtime` in `kalai11012004/netlab`. It is not yet merged to `main`.
-- No Vercel deployment of these backend commits has been verified. In any case, a Vercel static deployment cannot run QEMU or provide `/dev/kvm`.
+- The two GitHub Actions checks passed on the pull-request head before merge. Vercel deployment of the merged commit is not verified. In any case, a Vercel static deployment cannot run QEMU or provide `/dev/kvm`.
 - A complete ZIP can be used as a self-contained source package; the target host must be provisioned and the backend must be installed separately.
 
 ## Not verified in this environment
