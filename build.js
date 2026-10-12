@@ -85,7 +85,7 @@ const v41Parts = fs.readdirSync(payloadDir)
   .filter((name) => /^v4\.1\.patch\.\d{2}\.b64$/.test(name))
   .sort()
   .map((name) => fs.readFileSync(path.join(payloadDir, name), "utf8").trim());
-if (v41Parts.length !== 8) throw new Error(`Expected 8 v4.1 patch chunks, found ${v41Parts.length}`);
+if (v41Parts.length !== 3) throw new Error(`Expected 3 v4.1 patch chunks, found ${v41Parts.length}`);
 const v41PatchText = zlib.brotliDecompressSync(Buffer.from(v41Parts.join(""), "base64")).toString("utf8");
 const V41_SHA256 = "fbe2814567d8c88805e093ba3abda1609e9e776f15fe22c6de03aa06c981ccc3";
 const v41Html = applyUnifiedDiff(v4Html, v41PatchText);
@@ -93,9 +93,9 @@ if (sha256(v41Html) !== V41_SHA256) throw new Error("Patched v4.1 checksum misma
 if (!v41Html.includes("Connect QEMU/KVM backend") || !v41Html.includes("CCNA Tamil playlist roadmap") || !v41Html.includes("Eject installer ISO")) {
   throw new Error("Required v4.1 Windows VM / playlist markers are missing");
 }
-const compressed = zlib.brotliCompressSync(Buffer.from(v41Html, "utf8"), { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 } });
+const htmlBuffer = Buffer.from(v41Html, "utf8");
 fs.rmSync(distDir, { recursive: true, force: true });
 fs.mkdirSync(distDir, { recursive: true });
-fs.writeFileSync(path.join(distDir, "index.html"), compressed);
+fs.writeFileSync(path.join(distDir, "index.html"), htmlBuffer);
 for (const file of ["manifest.webmanifest", "icon.svg", "sw.js"]) fs.copyFileSync(path.join(root, file), path.join(distDir, file));
-console.log(`NetLab Studio v4.1 prepared; Brotli HTML: ${compressed.byteLength} bytes; v3.5/v3.6/v4.0/v4.1 checksums verified`);
+console.log(`NetLab Studio v4.1 prepared; plain HTML: ${htmlBuffer.byteLength} bytes; v3.5/v3.6/v4.0/v4.1 checksums verified`);
