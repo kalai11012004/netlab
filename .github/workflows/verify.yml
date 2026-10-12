@@ -1,0 +1,46 @@
+name: Verify NetLab Studio and real VM runtime
+
+on:
+  push:
+    branches:
+      - main
+      - feature/real-windows-vm-runtime
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  website-build:
+    name: Build existing NetLab website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout existing project
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Rebuild release HTML from the committed payload
+        run: node build.js
+
+  vm-runtime:
+    name: Test QEMU/KVM runtime API without requiring a hypervisor
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: runtime-backend
+    steps:
+      - name: Checkout existing project
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install runtime dependency
+        run: npm install --no-audit --no-fund
+      - name: Check backend and test-file syntax
+        run: npm run check
+      - name: Run runtime API, image registry, VM XML and console-ticket tests
+        run: npm test
