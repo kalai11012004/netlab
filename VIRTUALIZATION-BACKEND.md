@@ -1,4 +1,4 @@
-# NetLab Studio v4.1 — Real Windows/Linux VM runtime
+# NetLab Studio v4.2 — NG Labs-style real Windows/Linux VM runtime
 
 ## Package and deployment boundary
 
@@ -40,7 +40,10 @@ A backend response of `running` means the hypervisor confirms the VM process is 
 ## Known limitations / acceptance blockers
 
 - The development environment used for this build has no `/dev/kvm`, OVMF installation, running libvirt service, or enough free storage for a recommended Windows guest; no actual Windows guest boot was possible here.
-- Windows reaching the desktop, real noVNC input/resize, persistence after stop/start, guest internet/DNS and host packet capture still require target-host acceptance tests.
-- The topology canvas does not automatically project every drawn cable onto Linux TAP/bridge links. VMs attach only to administrator-allowlisted libvirt networks.
+- The topology canvas now syncs real VM profiles and drawn cables into isolated, per-lab libvirt L2 bridge segments. Nodes sharing a switch/cloud segment share the same virtual L2 fabric; direct links use their own segment. Unconnected ports remain link-down/isolated.
+- Topology changes are blocked after a VM in that lab has been defined. Stop/remove and recreate VMs after editing wiring so the actual guest NICs match the canvas.
+- The lab networks do not get host/Internet access by default. Any gateway, NAT or egress needs an explicitly configured and reviewed network design.
+- Windows reaching the desktop, real noVNC input/resize, persistence after stop/start, guest DHCP/DNS/internet and host packet capture still require target-host acceptance tests.
 - Browser-simulated packet traces are not real network packets or PCAP. Real captures require the runtime to report PCAP capability and an approved host interface.
-- Containers are not connected to Docker/OCI execution yet; router/firewall appliance profiles require separately licensed images and suitable runtimes.
+- Existing PC/server/router/firewall canvas nodes can be promoted to real QEMU/KVM guest profiles. Router/firewall console support depends on an administrator-supplied compatible appliance image with serial-console support; no Cisco IOS image or licensed appliance is bundled.
+- Containers are not connected to Docker/OCI execution yet.
