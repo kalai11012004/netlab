@@ -93,11 +93,26 @@ if (sha256(v41Html) !== V41_SHA256) throw new Error("Patched v4.1 checksum misma
 if (!v41Html.includes("Connect QEMU/KVM backend") || !v41Html.includes("CCNA Tamil playlist roadmap") || !v41Html.includes("Eject installer ISO")) {
   throw new Error("Required v4.1 Windows VM / playlist markers are missing");
 }
-const htmlBuffer = zlib.brotliCompressSync(Buffer.from(v41Html, "utf8"), {
+
+// Workspace-first hotfix: keep collapsed sidebars in their explicit CSS grid tracks.
+// display:none removes a grid item from auto-placement and can put the inspector over the canvas.
+let releaseHtml = v41Html;
+const collapsedSidebarRule = ".app-layout.library-collapsed .left-sidebar,.app-layout.inspector-collapsed .right-sidebar{display:none}";
+const collapsedSidebarIndex = releaseHtml.indexOf(collapsedSidebarRule);
+if (collapsedSidebarIndex < 0) throw new Error("Workspace layout marker missing; refusing to publish");
+const hiddenSidebarRule = ".app-layout.library-collapsed .left-sidebar,.app-layout.inspector-collapsed .right-sidebar{visibility:hidden;overflow:hidden;border:0;padding:0;pointer-events:none}";
+releaseHtml = releaseHtml.slice(0, collapsedSidebarIndex) + hiddenSidebarRule + releaseHtml.slice(collapsedSidebarIndex + collapsedSidebarRule.length);
+const oldFirstRunLayout = "let layoutPrefs = { libraryCollapsed: true, inspectorCollapsed: false, dockCollapsed: false, dockHeight: 154 };";
+const newFirstRunLayout = "let layoutPrefs = { libraryCollapsed: false, inspectorCollapsed: false, dockCollapsed: false, dockHeight: 154 };";
+if (releaseHtml.includes(oldFirstRunLayout)) releaseHtml = releaseHtml.replace(oldFirstRunLayout, newFirstRunLayout);
+if (!releaseHtml.includes(newFirstRunLayout)) throw new Error("Compact first-run device library marker missing; refusing to publish");
+if (!releaseHtml.includes(hiddenSidebarRule)) throw new Error("Workspace grid hotfix marker missing; refusing to publish");
+
+const htmlBuffer = zlib.brotliCompressSync(Buffer.from(releaseHtml, "utf8"), {
   params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 }
 });
 fs.rmSync(distDir, { recursive: true, force: true });
 fs.mkdirSync(distDir, { recursive: true });
 fs.writeFileSync(path.join(distDir, "index.html"), htmlBuffer);
 for (const file of ["manifest.webmanifest", "icon.svg", "sw.js"]) fs.copyFileSync(path.join(root, file), path.join(distDir, file));
-console.log(`NetLab Studio v4.1 prepared; Brotli-compressed HTML: ${htmlBuffer.byteLength} bytes; v3.5/v3.6/v4.0/v4.1 checksums verified`);
+console.log(`NetLab Studio v4.1 prepared; Brotli-compressed HTML: ${htmlBuffer.byteLength} bytes; v3.5/v3.6/v4.0/v4.1 checksums verified; workspace-first hotfix applied`);
