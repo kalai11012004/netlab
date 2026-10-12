@@ -15,7 +15,7 @@ Restart=on-failure
 RestartSec=3s
 TimeoutStopSec=30s
 UMask=0007
-NoNewPrivileges=true
+# Permit root-owned tcpdump's narrowly scoped file capabilities; Node remains unprivileged.
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
