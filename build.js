@@ -82,7 +82,7 @@ if (!v4Html.includes("NetLab Studio 4.0") || !v4Html.includes("QEMU/KVM") || !v4
 }
 
 const v41Parts = fs.readdirSync(payloadDir)
-  .filter((name) => /^v4\.1\.patch\.\d{2}\.b64$/.test(name))
+  .filter((name) => /^v4\.1\.patch\.0[1-3]\.b64$/.test(name))
   .sort()
   .map((name) => fs.readFileSync(path.join(payloadDir, name), "utf8").trim());
 if (v41Parts.length !== 3) throw new Error(`Expected 3 v4.1 patch chunks, found ${v41Parts.length}`);
