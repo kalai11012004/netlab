@@ -1,0 +1,27 @@
+name: Verify NetLab production bundle
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build v4.1 release
+        run: node build.js
+      - name: Verify served HTML
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('dist/index.html', 'utf8');
+          for (const marker of ['NetLab Studio 4.1', 'Connect QEMU/KVM backend', 'CCNA Tamil playlist roadmap', 'Eject installer ISO']) {
+            if (!html.includes(marker)) throw new Error('Missing marker: ' + marker);
+          }
+          console.log('v4.1 HTML markers verified; bytes=' + Buffer.byteLength(html));
+          NODE
