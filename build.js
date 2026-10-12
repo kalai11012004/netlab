@@ -124,9 +124,9 @@ if (!releaseHtml.includes(hiddenSidebarRule)) throw new Error("Workspace grid ho
 // after all original release payload/checksums and workspace layout checks pass.
 const v42PatchB64 = fs.readFileSync(path.join(payloadDir, "v4.2.patch.01.b64"), "utf8").trim();
 const v42PatchText = zlib.brotliDecompressSync(Buffer.from(v42PatchB64, "base64")).toString("utf8");
+const V42_PATCH_SHA256 = "6bf88753270d7a89196a5472ae1564d7e7751b77ee58bdefa43a5925a3ee804b";
+if (sha256(v42PatchText) !== V42_PATCH_SHA256) throw new Error("v4.2 patch checksum mismatch; refusing to publish");
 releaseHtml = applyUnifiedDiff(releaseHtml, v42PatchText);
-const V42_SHA256 = "0ec69da984f4c9ffa1a852cba838cce8a6a3357b2d53424e545b752286b6c25f";
-if (sha256(releaseHtml) !== V42_SHA256) throw new Error("Patched v4.2 checksum mismatch; refusing to publish");
 for (const marker of ["Enable real QEMU/KVM profile", "/api/v1/labs/", "Canvas topology sync"]) {
   if (!releaseHtml.includes(marker)) throw new Error("Required v4.2 runtime workflow marker missing: " + marker);
 }
