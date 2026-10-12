@@ -1,28 +1,31 @@
-# NetLab Studio v4.1 — CCNA labs + Windows VM runtime
+# NetLab Studio v4.1 — CCNA labs + Windows VM workflow
 
-NG-Lab/EVE-NG-inspired browser topology and guided learning workspace with an optional real-host QEMU/KVM API. It is an educational simulator, not a complete EVE-NG replacement or a Cisco IOS emulator.
+NG-Lab/EVE-NG-inspired browser topology and guided learning workspace. It is an educational simulator, not a complete EVE-NG replacement or a Cisco IOS emulator.
 
 ## v4.1
-- Connect the browser to an operator-managed QEMU/KVM backend over HTTPS using a private API token.
-- Discover admin-allowlisted VM images/networks; request real VM create/start/stop/status and open an expiring noVNC console ticket.
-- Windows installer workflow: authorized ISO, new writable QCOW2 disk, read-only SATA CD-ROM, SATA disk and e1000e NIC. Windows 11 requires host UEFI Secure Boot and TPM 2.0 capability.
-- Added an in-app road map matching all 18 topics from the provided CCNA BootCamp Tamil course index. See `PLAYLIST-COVERAGE.md`.
-- Added an Ubuntu Server 24.04 installation script, restricted systemd service and reverse-proxy example under `runtime-backend/`.
+- Browser workflow for connecting to an operator-managed QEMU/KVM API over HTTPS with a private API token.
+- Admin-allowlisted image/network discovery, VM create/start/stop/status, expiring noVNC console tickets and Windows installer-media eject flow.
+- Windows installer profile uses an authorized ISO, a new writable QCOW2 disk, read-only SATA CD-ROM and e1000e NIC. Windows 11 requires host UEFI Secure Boot and TPM 2.0 capability.
+- In-app road map for all 18 lesson titles in the supplied CCNA BootCamp Tamil course index. See `PLAYLIST-COVERAGE.md`.
 
-## Real Windows guest — requirements
-The Vercel site is static and is **not** itself a hypervisor. To boot Windows, use a dedicated x86_64 Linux host with Intel VT-x/AMD-V, working `/dev/kvm`, QEMU/KVM, libvirt, OVMF and swtpm. Extract the source ZIP, run `sudo runtime-backend/scripts/install-ubuntu.sh` on that dedicated Ubuntu Server 24.04 host, review `/etc/netlab/runtime.env` and `/etc/netlab/image-registry.json`, configure HTTPS, then connect from **Virtualization → Connect QEMU/KVM backend…**. Register only an OS ISO/image you are legally authorized to use. See `VIRTUALIZATION-BACKEND.md` for the checklist.
+## Important: separate VM server required
+The Vercel website is static; it cannot itself run QEMU, access `/dev/kvm`, or boot Windows. Real guests require a separate x86_64 Linux host with Intel VT-x/AMD-V, QEMU/KVM, libvirt, OVMF and (for Windows 11) swtpm, plus HTTPS and strict host-side allowlists. Supply only OS media/images you are authorized to use.
 
-**Runtime honesty:** no OS ISO or proprietary appliance image is bundled. The VM flow is not operational until a separate host is installed and connected. This repository's CI/test environment has no `/dev/kvm`, so no real Windows guest boot has been certified here. The simulator's current topology is not automatically bridged to host networks, and simulated CSV traces are not real PCAPs.
+**Repository packaging note:** the complete `runtime-backend/` implementation and Ubuntu installation files are included in the v4.1 source ZIP attached in this ChatGPT conversation. They are not all committed to the GitHub tree yet, so a fresh GitHub checkout alone is not sufficient to install the backend. Use the supplied source ZIP for the backend package; do not assume the paths mentioned in `VIRTUALIZATION-BACKEND.md` are present in this repository checkout.
 
-## Run the browser UI locally
-With Node.js installed, run `node build-local.js` and serve the project with `python -m http.server 8080`; open `http://localhost:8080`. Stop the server with Ctrl+C.
+## Runtime honesty
+No Windows ISO or proprietary appliance image is bundled. A real Windows guest has not been boot-certified here because the build/test environment has no KVM host. The simulator's topology is not automatically bridged to host networks, and simulated traces are not real PCAPs. Real host packet capture is available only after a separately configured backend is connected.
+
+## Browser app
+The production site is https://netlab-studio-hazel.vercel.app. To rebuild the static app from this repository, use `node build.js`; the builder verifies payload checksums before output.
 
 ## Validation
-- Network engine, security, regression and catalogue tests: 52 passing.
+- Network engine, regression, security and catalogue tests: 52 passing.
 - Browser E2E tests: 24 passing.
 - Bundled application E2E tests: 22 passing.
-- QEMU/KVM runtime API / image registry / libvirt XML unit tests: 17 passing.
-These tests validate application and API logic. They do not substitute for a real KVM host or a live Windows-install verification.
+- QEMU/KVM API, image registry and libvirt XML unit tests: 17 passing.
+
+These validate application/API logic, not a real KVM guest boot.
 
 ## Playlist coverage
-The linked course page lists 18 lessons / 18:23:51 total. See `PLAYLIST-COVERAGE.md` for a lesson-by-lesson implementation gap map. The individual YouTube transcripts could not all be retrieved in this environment; the coverage map does not claim every full video was watched.
+See `PLAYLIST-COVERAGE.md`. The published course index lists 18 lessons and 18:23:51 total. Full transcripts for all individual YouTube videos were not retrievable in this environment, so the roadmap is not a claim that every full video was watched end-to-end.
