@@ -69,7 +69,7 @@ const html = applyUnifiedDiff(original, patchText);
 if (sha256(html) !== NEW_SHA256) throw new Error("Patched v3.6 checksum mismatch; refusing to continue");
 
 const v4Parts = fs.readdirSync(payloadDir)
-  .filter((name) => /^v4\.patch\.\d{2}(?:[a-z]\d?)?\.b64$/.test(name))
+  .filter((name) => /^v4\.patch\.\d{2}(?:[ab])?\.b64$/.test(name))
   .sort()
   .map((name) => fs.readFileSync(path.join(payloadDir, name), "utf8").trim());
 if (v4Parts.length !== 8) throw new Error(`Expected 8 v4.0 patch chunks, found ${v4Parts.length}`);
