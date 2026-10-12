@@ -69,10 +69,10 @@ const html = applyUnifiedDiff(original, patchText);
 if (sha256(html) !== NEW_SHA256) throw new Error("Patched v3.6 checksum mismatch; refusing to continue");
 
 const v4Parts = fs.readdirSync(payloadDir)
-  .filter((name) => /^v4\.patch\.\d{2}(?:[ab])?\.b64$/.test(name))
+  .filter((name) => /^v4\.patch\.(?:0[1-4]|05[ab]|06)\.b64$/.test(name))
   .sort()
   .map((name) => fs.readFileSync(path.join(payloadDir, name), "utf8").trim());
-if (v4Parts.length !== 8) throw new Error(`Expected 8 v4.0 patch chunks, found ${v4Parts.length}`);
+if (v4Parts.length !== 7) throw new Error(`Expected 7 v4.0 patch segments, found ${v4Parts.length}`);
 const v4PatchText = zlib.brotliDecompressSync(Buffer.from(v4Parts.join(""), "base64")).toString("utf8");
 const V40_SHA256 = "485cde601120bc6c8547662c1872fef9f8a7769d7e643f133a826a4e9fd46930";
 const v4Html = applyUnifiedDiff(html, v4PatchText);
