@@ -16,7 +16,7 @@ if (!fs.existsSync(mainFile)) {
 // apply guarded behavioral fixes, then restore it after the main build completes.
 const declaration = "const EDXC_MANAGER_HTML = ";
 const start = buildSource.indexOf(declaration);
-const endMarker = ";\\nconst edxcOutDir";
+const endMarker = ";" + String.fromCharCode(10) + "const edxcOutDir";
 const end = start < 0 ? -1 : buildSource.indexOf(endMarker, start + declaration.length);
 if (start < 0 || end < 0) {
   throw new Error("Could not locate the eDXC manager HTML literal in build.js.");
