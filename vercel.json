@@ -78,5 +78,9 @@
         }
       ]
     }
-  ]
+  ],
+  "framework": null,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install --ignore-scripts --no-audit --no-fund"
 }
