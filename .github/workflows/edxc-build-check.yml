@@ -1,0 +1,35 @@
+name: eDXC build verification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "build.js"
+      - "package.json"
+      - "postbuild-edxc.js"
+      - "payload/**"
+      - ".github/workflows/edxc-build-check.yml"
+  push:
+    branches: ["edxc/manager-build-fix"]
+
+jobs:
+  build-and-verify-edxc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Check build scripts parse
+        run: |
+          node --check build.js
+          node --check postbuild-edxc.js
+      - name: Build NetLab and restore eDXC manager
+        run: npm run build
+      - name: Verify eDXC route output
+        run: |
+          test -s dist/index.html
+          test -s dist/edxc/index.html
+          node -e "const fs=require('fs');const z=require('zlib');const main=z.brotliDecompressSync(fs.readFileSync('dist/index.html')).toString('utf8');const edxc=fs.readFileSync('dist/edxc/index.html','utf8');for(const m of ['ge-vernova-gridcom-edxc-modular-digital-cross-connect','netlabEdxcLaunch'])if(!main.includes(m))throw Error('Missing main workspace marker: '+m);for(const m of ['CCPA control / management','Console: DB9 RS-232','MAP_1','MAP_2','Cross-connect planner','Console access'])if(!edxc.includes(m))throw Error('Missing eDXC marker: '+m);console.log('Main workspace and eDXC manager route verified.')"
